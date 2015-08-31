@@ -4,50 +4,8 @@
  *****************************************************************************/
 
 #include "mbed.h"
+#include "display.h"
 
-
-#include "LcdController.h"
-#include "EaLcdBoardGPIO.h"
-#include "AR1021I2C.h"
-#include "sdram.h"
-
-#include "wchar.h"
-#include "GFXFb.h"
-
-
-
-/******************************************************************************
- * Typedefs and defines
- *****************************************************************************/
-
-#define LCD_CONFIGURATION_43 \
-        40,                         /* horizontalBackPorch */ \
-        5,                          /* horizontalFrontPorch */ \
-        2,                          /* hsync */ \
-        480,                        /* width */ \
-        8,                          /* verticalBackPorch */ \
-        8,                          /* verticalFrontPorch */ \
-        2,                          /* vsync */ \
-        272,                        /* height */ \
-        false,                      /* invertOutputEnable */ \
-        false,                      /* invertPanelClock */ \
-        true,                       /* invertHsync */ \
-        true,                       /* invertVsync */ \
-        1,                          /* acBias */ \
-        LcdController::Bpp_16_565,  /* bpp */ \
-        9000000,                    /* optimalClock */ \
-        LcdController::Tft,         /* panelType */ \
-        false                       /* dualPanel */
-
-#define LCD_INIT_STRING_43  (char*)"v1,cd0,c50,cc0,c30,d100,c31,d100,cd1,d10,o,c51,cc100"
-
-
-/******************************************************************************
- * Local variables
- *****************************************************************************/
-
-// EA LCD Board interface
-static EaLcdBoardGPIO lcdBoard(P0_27, P0_28);
 
 static uint16_t const colors[16] = {
         BLACK,
@@ -81,7 +39,7 @@ static uint16_t random(uint16_t max)
   return temp;
 }
 
-static void demo1(GFXFb &gfx) {
+static void demo1(Display &gfx) {
 
     int16_t x0 = 0;
     int16_t y0 = 0;
@@ -111,7 +69,7 @@ static void demo1(GFXFb &gfx) {
 }
 
 
-static void demo2(GFXFb &gfx) {
+static void demo2(Display &gfx) {
     int32_t margin = 5;
     int32_t rowHeight = gfx.height() / 3;
     int32_t colWidth = gfx.width() / 3;
@@ -192,7 +150,7 @@ static void demo2(GFXFb &gfx) {
 
 }
 
-static void demo3(GFXFb &gfx, TouchPanel* touchPanel) {
+static void demo3(Display &gfx, TouchPanel *touchPanel) {
 
     uint16_t x = 0;
     uint16_t y = 0;
@@ -247,10 +205,6 @@ static void demo3(GFXFb &gfx, TouchPanel* touchPanel) {
         }
 
     } while (0);
-
-
-
-    while(1);
 }
 
 /******************************************************************************
@@ -259,75 +213,15 @@ static void demo3(GFXFb &gfx, TouchPanel* touchPanel) {
 
 
 int main (void) {
-    bool initSuccessful = false;
+  Display d = Display::getInstance();
+	TouchPanel *tp = new AR1021I2C(P0_27, P0_28, P2_25);
 
-    EaLcdBoard::Result result;
-	  LcdController::Config *lcdCfg = new LcdController::Config(LCD_CONFIGURATION_43);
-    uint32_t frameBuf1 = 0;
-    TouchPanel* tp = new AR1021I2C(P0_27, P0_28, P2_25);
-;
-    // frame buffer is put in SDRAM
-    if (sdram_init() == 1) {
-    	printf("Failed to initialize SDRAM\n");
-    	return 1;
-    }
-
-    do {
-
-        result = lcdBoard.open(lcdCfg, LCD_INIT_STRING_43);
-        if (result != EaLcdBoard::Ok) {
-            printf("Failed to open display: %d\n", result);
-            break;
-        }
-
-
-
-
-        // allocate framebuffer, width x height x 2 (2 bytes = 16 bit color data)
-        frameBuf1 = (uint32_t)malloc(lcdCfg->width*lcdCfg->height*2);
-        if (frameBuf1 == 0) {
-            printf("Failed to allocate frame buffer\n");
-            break;
-        }
-
-
-        result = lcdBoard.setFrameBuffer(frameBuf1);
-        if (result != EaLcdBoard::Ok) {
-            printf("Failed to activate frameBuffer: %d\n", result);
-            break;
-        }
-
-
-        memset((void*)frameBuf1, 0x0, lcdCfg->width*lcdCfg->height*2);
-
-
-
-        initSuccessful = true;
-
-
-    } while(0);
-
-
-
-
-    if (initSuccessful) {
-
-        GFXFb gfx(lcdCfg->width, lcdCfg->height, (uint16_t*)frameBuf1);
-
-        while (1) {
-            demo1(gfx);
-            wait_ms(5000);
-            demo2(gfx);
-            wait_ms(5000);
-            demo3(gfx, tp);
-        }
-
-    }
-    else {
-        printf("Couldn't start demo -> Initialization failed\n");
-    }
-
-
-    return 0;
+  while (1) {
+    demo1(d);
+    wait_ms(5000);
+    demo2(d);
+    wait_ms(5000);
+    demo3(d, tp);
+  }
 }
 
