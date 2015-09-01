@@ -216,12 +216,14 @@ int main (void) {
   Display d = Display::getInstance();
 	TouchPanel *tp = new AR1021I2C(P0_27, P0_28, P2_25);
 
-  while (1) {
-    demo1(d);
-    wait_ms(5000);
-    demo2(d);
-    wait_ms(5000);
-    demo3(d, tp);
-  }
+  if (d.initOk()) {
+	  while (1) {
+      demo1(d);
+      wait_ms(5000);
+      demo2(d);
+      wait_ms(5000);
+      demo3(d, tp);
+    }
+	}
 }
 

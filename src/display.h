@@ -13,6 +13,7 @@
 class Display : public GFXFb {
 	public:
 		static Display& getInstance();
+	  bool initOk();
 	  ~Display();
 	
 	private:

@@ -56,3 +56,7 @@ Display& Display::getInstance() {
 	static Display theInstance;
 	return theInstance;
 }
+
+bool Display::initOk() {
+	return (result == EaLcdBoard::Ok);
+}
