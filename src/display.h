@@ -10,18 +10,23 @@
 #include <wchar.h>
 #include <GFXFb.h>
 
-class Display : public GFXFb {
+class Display : public Stream, public GFXFb {
 	public:
-		static Display& getInstance();
+	  Display();
 	  bool initOk();
+#if 0	
+		static Display& getInstance();
 	  ~Display();
+#endif
 	
 	private:
-	  Display();
 	  char *initStr;
 	  LcdController::Config *lcdCfg;
 		EaLcdBoardGPIO lcdBoard;
     uint32_t frameBuffer;
 	  EaLcdBoard::Result result;
+	protected:
+		virtual int _putc(int value);
+	  virtual int _getc();
 };
 #endif

@@ -44,7 +44,9 @@ Display::Display() :
 			}
 		}
 }
-	
+
+
+#if 0
 Display::~Display() {
   if (frameBuffer != 0) {
     free((void*)frameBuffer);
@@ -53,10 +55,22 @@ Display::~Display() {
 }
 
 Display& Display::getInstance() {
-	static Display theInstance;
-	return theInstance;
+	static Display* theInstance = new Display();
+	return *theInstance;
 }
+
+#endif 
+
 
 bool Display::initOk() {
 	return (result == EaLcdBoard::Ok);
+}
+
+int Display::_putc(int value) {
+	GFXFb::write(value);
+	return value;
+}
+
+int Display::_getc() {
+	return -1;
 }
